@@ -1,0 +1,643 @@
+Implantation de la base de données
+-- ------------------------------------------------------------------------
+--       TABLE: CLIENT
+-- ------------------------------------------------------------------------
+
+CREATE TABLE CLIENT
+   (
+    CLINUM NUMBER (4) NOT NULL,
+    RAISON_SOCIALE VARCHAR2(25) NULL, 
+    CONSTRAINT PK_CLIENT PRIMARY KEY (CLINUM) 
+   ) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de la table CLIENT, avec comme identifiant : CLINUM, qui est de type nombre et ne peut pas être égale à 0.
+Un autre attribut de la table CLIENT : RAISON_SOCIALE, on y a appliqué le type Varchar, pour pouvoir y mettre des caractères sans limite de place.
+-- ------------------------------------------------------------------------
+
+
+-- ------------------------------------------------------------------------
+--       TABLE : SECTEUR
+-- ------------------------------------------------------------------------
+
+CREATE TABLE SECTEUR
+   (
+    SECNUM NUMBER(4)  NOT NULL,
+    SECVILLE VARCHAR2(25)  NULL,
+    SECQUARTIER VARCHAR2(20)  NULL,
+    CONSTRAINT PK_SECTEUR PRIMARY KEY (SECNUM)  
+   ) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de la table SECTEUR, avec comme identifiant : SECNUM, qui est de type nombre ne peut être égale à 0.
+D’autres attribut de la table client sont SECVILLE, et SECQUARTIER, on y a appliqué le type Varchar, pour pouvoir y mettre des caractères sans limite.
+-- ------------------------------------------------------------------------
+
+-- ------------------------------------------------------------------------
+--       TABLE: ENTREPOT
+-- ------------------------------------------------------------------------
+
+CREATE TABLE ENTREPOT
+   (
+    ENTNUM NUMBER(4)  NOT NULL,
+    ENTNOM VARCHAR2(25)  NULL,
+    SECNUM NUMBER(4)  NOT NULL,
+    CLINUM NUMBER(4)  NOT NULL,
+    CONSTRAINT PK_ENTREPOT PRIMARY KEY (ENTNUM)  
+   ) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de la table ENTREPOT, avec comme identifiant : ENTNUM, qui est de type nombre et ne peut être égale à 0.
+D’autres attribut de la table CLIENT c’est ENTNOM on y a appliqué le type Varchar, pour pouvoir y mettre des caractères sans limite.
+
+Clés étrangères :
+SECNUM (l’association LOCALISER_ENT relient ENTREPOT et SECTEUR, et la cardinalité entre ENTREPOT et LOCALISER_ENT = (1,1) donc il y a une fusion et l’identifiant de SECTEUR, se retrouve comme clé étrangère dans la table ENTREPOT)
+
+CLINUM (l’association POSSEDER relient CLIENT et ENTREPOT et la cardinalité entre ENTREPOT et POSSEDER = (1,1) donc il y a une fusion et l’identifiant de CLIENT, se retrouve comme clé étrangère dans la table ENTREPOT)
+-- ------------------------------------------------------------------------
+
+
+-- ------------------------------------------------------------------------
+--       INDEX DE LA TABLE ENTREPOT
+-- ------------------------------------------------------------------------
+
+CREATE  INDEX I_FK_ENTREPOT_CLIENT
+     ON ENTREPOT (CLINUM ASC)
+    ;
+
+CREATE  INDEX I_FK_ENTREPOT_SECTEUR
+     ON ENTREPOT (SECNUM ASC)
+    ;
+
+-- ------------------------------------------------------------------------
+Commentaire : L’index simplifie et accélère les opérations de recherche, de tri, de jointure ou d'agrégation. Ici les clés étrangères sont CLINUM, et SECNUM.
+-- -----------------------------------------------------------------------
+
+-- ------------------------------------------------------------------------
+--       TABLE : PRODUIT
+-- ------------------------------------------------------------------------
+
+CREATE TABLE PRODUIT
+   (
+    PRODNUM NUMBER(4)  NOT NULL,
+    PRODLIB VARCHAR2(30)  NULL,
+    PRODVOLUME NUMBER(4)  NULL,
+    QTEAPPROVISIONNEMENT NUMBER(4)  NOT NULL,    
+    CONSTRAINT PK_PRODUIT PRIMARY KEY (PRODNUM)  
+   ) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de la table PRODUIT, avec comme identifiant : PRODNUM qui est de type nombre ne peut être égale à 0.
+D’autres attribut de la table CLIENT sont PRODLIB, et PRODVOLUME et QTEAPPROVISIONNEMENT.
+-- ------------------------------------------------------------------------
+
+
+-- ------------------------------------------------------------------------
+--       TABLE : DEPOT
+-- ------------------------------------------------------------------------
+
+CREATE TABLE DEPOT
+   (
+    DEPNUM NUMBER(4)  NOT NULL,
+    DEPNOM VARCHAR2(30)  NULL,
+    SECNUM  NUMBER(4)  NOT NULL,
+    CONSTRAINT PK_DEPOT PRIMARY KEY (DEPNUM)  
+   ) ;
+
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de la table DEPOT, avec comme identifiant : DEPNUM. Un autre attribut de la table DEPOT : DEPNOM. 
+
+Clé étrangère :
+Secnum (l’association LOCALISER_DEP relient table DEPOT et la table SECTEUR, et la cardinalité entre DEPOT et LOCALISER_DEP = (1,1) donc il y a fusion et l’identifiant de SECTEUR, se retrouve comme clé étrangère dans la table DEPOT).
+-- ------------------------------------------------------------------------
+
+-- ------------------------------------------------------------------------
+--       INDEX DE LA TABLE DEPOT
+-- -----------------------------------------------------------------------
+
+CREATE  INDEX I_FK_DEPOT_SECTEUR
+     ON DEPOT (SECNUM ASC)
+    ;
+
+-- ------------------------------------------------------------------------
+Commentaire : L’index simplifie et accélère les opérations de recherche, de tri, de jointure ou d'agrégation. Ici la clé étrangère c’est SECNUM.
+-- -----------------------------------------------------------------------
+
+
+-- ------------------------------------------------------------------------
+--       TABLE : STOCKER
+-- ------------------------------------------------------------------------
+
+CREATE TABLE STOCKER
+   (
+    PRODNUM NUMBER(4)  NOT NULL,
+    DEPNUM NUMBER(4)  NOT NULL,
+    QTESTOCK NUMBER(4)  NULL,
+    QTEALERTE NUMBER(4)  NULL,
+   CONSTRAINT PK_STOCKER PRIMARY KEY (DEPNUM, PRODNUM)  
+   ) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de l’association STOCKER, avec comme clé primaire : DEPNUM et PRODNUM (qui sont les clés primaires des deux entités (DEPOT et PRODUIT) que l’association STOCKER relient).
+
+Les attributs de la table STOCKER sont QTESTOCK et QTEALERTE.
+-- ------------------------------------------------------------------------
+
+
+-- ------------------------------------------------------------------------
+--       INDEX DE LA TABLE STOCKER
+-- ------------------------------------------------------------------------
+CREATE  INDEX I_FK_STOCKER_PRODUIT
+     ON STOCKER (PRODNUM ASC)
+    ;
+
+CREATE  INDEX I_FK_STOCKER_DEPOT
+     ON STOCKER (DEPNUM ASC)
+    ;
+
+
+-- ------------------------------------------------------------------------
+Commentaire : L’index simplifie et accélère les opérations de recherche, de tri, de jointure ou d'agrégation. Ici les clés étrangères sont PRODNUM, et DEPNUM.
+-- -----------------------------------------------------------------------
+
+
+
+-- ------------------------------------------------------------------------
+--       TABLE : APPROVISIONNER
+-- ------------------------------------------------------------------------
+
+CREATE TABLE APPROVISIONNER
+   (
+    PRODNUM NUMBER(4)  NOT NULL,
+    DEPNUM_SOURCE NUMBER(4)  NOT NULL,
+    DEPNUM_DEST NUMBER(4)  NOT NULL,
+    DATEAPP DATE NOT NULL,
+    CONSTRAINT PK_APPROVISIONNER PRIMARY KEY (DEPNUM_SOURCE, PRODNUM, DEPNUM_DEST, DATEAPP ) 
+);
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de l’association APPROVISIONNER, avec comme identifiant : DEPNUM_SOURCE, DEPNUM_DEST, PRODNUM et DATEAPP (les clés primaires des trois entités (DEPOT, CAL et PRODUIT) que l’association APPROVISIONNER relient).
+-- ------------------------------------------------------------------------
+
+-- ------------------------------------------------------------------------
+--       TABLE : COMMANDE
+-- ------------------------------------------------------------------------
+
+CREATE TABLE COMMANDE
+   (
+    COMNUM NUMBER(4)  NOT NULL,
+    COMDATE DATE  NULL,
+    COMDATELIV DATE  NULL,
+    COMETAT VARCHAR2(15)  NULL,
+    CLINUM NUMBER(4)  NOT NULL,
+    CONSTRAINT PK_COMMANDE PRIMARY KEY (COMNUM)  
+   ) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de la table COMMANDE, avec comme identifiant : COMNUM.
+D’autres attributs de la table COMMANDE sont COMDATE, COMDATELIV, COMETAT.
+
+Clé étrangère :
+CLINUM (l’association EMETTRE relient les tables CLIENT et COMMANDE, et la cardinalité entre COMMANDE et EMETTRE = (1,1) donc il y a fusion et l’identifiant de CLIENT, se retrouve comme clé étrangère dans la table COMMANDE).
+-- ------------------------------------------------------------------------
+
+
+-- ------------------------------------------------------------------------
+--       TABLE : CONCERNER
+-- ------------------------------------------------------------------------
+
+CREATE TABLE CONCERNER
+   (
+    COMNUM NUMBER(4)  NOT NULL,
+    PRODNUM NUMBER(4)  NOT NULL,
+    ENTNUM NUMBER(4)  NULL ,
+    QTECOM NUMBER(20)  NULL,
+    CONSTRAINT PK_CONCERNER PRIMARY KEY (COMNUM, PRODNUM, ENTNUM)  
+   ) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de l’association CONCERNER. 
+Les clés primaires sont : ENTNUM, PRODNUM, COMNUM (les clés primaires des trois entités (COMMANDE, ENTREPOT et PRODUIT) que l’association CONCERNER relient). 
+Son attribut est QTECOM.
+-- ------------------------------------------------------------------------
+
+-- ------------------------------------------------------------------------
+--       INDEX DE LA TABLE CONCERNER
+-- ------------------------------------------------------------------------
+
+CREATE INDEX I_FK_CONCERNER_ENTREPOT
+     ON CONCERNER (ENTNUM ASC)
+    ;
+
+CREATE  INDEX I_FK_CONCERNER_PRODUIT
+     ON CONCERNER (PRODNUM ASC)
+    ;
+
+CREATE  INDEX I_FK_CONCERNER_COMMANDE
+     ON CONCERNER (COMNUM ASC)
+    ;
+
+-- ------------------------------------------------------------------------
+Commentaire : L’index simplifie et accélère les opérations de recherche, de tri, de jointure ou d'agrégation. Ici les clés étrangères de CONCERNER sont PRODNUM, COMNUM, et ENTNUM.
+-- -----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+-- ------------------------------------------------------------------------
+--       TABLE : COLIS
+-- ------------------------------------------------------------------------
+
+CREATE TABLE COLIS
+   (
+    COLNUM NUMBER(4)  NOT NULL,
+    COLETAT VARCHAR2(15)  NULL,
+    COLVOLUME NUMBER(4)  NULL,
+    ENTNUM NUMBER(4)  NOT NULL,
+    COMNUM NUMBER(4)  NOT NULL,
+    CONSTRAINT PK_COLIS PRIMARY KEY (COLNUM)  
+   ) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de la table COLIS, avec comme identifiant : COLNUM.
+D’autres attributs de la table COLIS sont COLETAT, COLVOLUME.
+Clé étrangère : 
+ENTNUM (l’association DESTINER relient les tables COLIS et ENTREPOT et la cardinalité entre COLIS et DESTINER = (1,1) donc il y a fusion et l’identifiant d’ENTREPOT, se retrouve comme clé étrangère dans la table COLIS).
+COMNUM (l’association décomposer relient les tables COMMANDE et COLIS et la cardinalité entre COLIS et DECOMPOSER = (1,1) donc il y a fusion et l’identifiant de COMMANDE, se retrouve comme clé étrangère dans la table COLIS).
+-- ------------------------------------------------------------------------
+
+
+
+-- ------------------------------------------------------------------------
+--       INDEX DE LA TABLE COLIS
+-- ------------------------------------------------------------------------
+
+CREATE  INDEX I_FK_COLIS_ENTREPOT
+     ON COLIS (ENTNUM ASC)
+    ;
+
+CREATE  INDEX I_FK_COLIS_COMMANDE
+     ON COLIS (COMNUM ASC)
+    ;
+
+
+-- ------------------------------------------------------------------------
+Commentaire : L’index simplifie et accélère les opérations de recherche, de tri, de jointure ou d'agrégation. Ici les clés étrangères sont COLIS sont COMNUM et ENTNUM.
+-- -----------------------------------------------------------------------
+
+
+
+
+-- ------------------------------------------------------------------------
+--       TABLE: CONTENIR
+-- ------------------------------------------------------------------------
+
+CREATE TABLE CONTENIR
+   (
+    COLNUM NUMBER(4)  NOT NULL,
+    PRODNUM NUMBER(4)  NOT NULL,
+    CONSTRAINT PK_CONTENIR PRIMARY KEY (COLNUM,PRODNUM)  
+   ) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de la table CONTENIR, avec comme clé primaire : COLNUM et PRODNUM qui sont les clés primaires des entités (COLIS et PRODUIT) que la classe d’association CONTENIR relient.
+-- ------------------------------------------------------------------------
+
+-- ------------------------------------------------------------------------
+--       INDEX DE LA TABLE CONTENIR
+-- ------------------------------------------------------------------------
+
+CREATE  INDEX I_FK_CONTENIR_COLIS
+     ON CONTENIR (COLNUM ASC)
+    ;
+
+CREATE  INDEX I_FK_CONTENIR_PRODUIT
+     ON CONTENIR (PRODNUM ASC)
+    ;
+
+-- ------------------------------------------------------------------------
+Commentaire : L’index simplifie et accélère les opérations de recherche, de tri, de jointure ou d'agrégation. Ici les clés étrangères de CONTENIR sont COLNUM, et PRODNUM.
+-- -----------------------------------------------------------------------
+
+
+-- ------------------------------------------------------------------------
+--       INDEX DE LA TABLE COMMANDE
+-- ------------------------------------------------------------------------
+
+CREATE  INDEX I_FK_COMMANDE_CLIENT
+     ON COMMANDE (CLINUM ASC)
+    ;
+
+-- ------------------------------------------------------------------------
+Commentaire : L’index simplifie et accélère les opérations de recherche, de tri, de jointure ou d'agrégation. Ici la clé étrangère de la table COMMANDE c’est CLINUM.
+-- -----------------------------------------------------------------------
+
+-- ------------------------------------------------------------------------
+--       INDEX DE LA TABLE APPROVISIONNER
+-- ------------------------------------------------------------------------
+
+CREATE  INDEX I_FK_APPROVISIONNER_CAL
+     ON APPROVISIONNER (DATEAPP ASC)
+    ;
+
+CREATE  INDEX I_FK_APPROVISIONNER_DEPOT
+     ON APPROVISIONNER (DEPNUM_DEST ASC)
+    ;
+
+CREATE  INDEX I_FK_APPROVISIONNER_DEPOT
+     ON APPROVISIONNER (DEPNUM_SOURCE ASC)
+    ;
+
+CREATE  INDEX I_FK_APPROVISIONNER_PRODUIT
+     ON APPROVISIONNER (PRODNUM ASC)
+    ;
+
+-- ------------------------------------------------------------------------
+Commentaire : L’index simplifie et accélère les opérations de recherche, de tri, de jointure ou d'agrégation. Ici les clés étrangères de la table APPROVISIONNER sont DEPNUM_SOURCE, DEPNUM_DEST, PRODNUM, et DATEAPP.
+-- -----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- ------------------------------------------------------------------------
+--       CREATION DES REFERENCES DE TABLE
+-- ------------------------------------------------------------------------
+
+
+ALTER TABLE ENTREPOT ADD (
+     CONSTRAINT FK_ENTREPOT_CLIENT
+          FOREIGN KEY (CLINUM)
+               REFERENCES CLIENT (CLINUM))   ;
+
+ALTER TABLE ENTREPOT ADD (
+     CONSTRAINT FK_ENTREPOT_SECTEUR
+          FOREIGN KEY (SECNUM)
+               REFERENCES SECTEUR (SECNUM))   ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de référence pour la table ENTREPOT.
+Clé étrangère : 
+CLINUM : car la cardinalité entre ENTREPOT et POSSEDER = (1,1) donc fusion et l’identifiant de CLIENT, se retrouve comme clé étrangère dans la table ENTREPOT.
+SECNUM : car la cardinalité entre ENTREPOT et LOCALISER_ENT = (1,1) donc fusion et l’identifiant de SECTEUR, se retrouve comme clé étrangère dans la table ENTREPOT.
+-- ------------------------------------------------------------------------
+
+
+ALTER TABLE DEPOT ADD (
+     CONSTRAINT FK_DEPOT_SECTEUR
+          FOREIGN KEY (SECNUM)
+               REFERENCES SECTEUR (SECNUM))   ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de référence pour la table DEPOT.
+Clé étrangère : 
+SECNUM : car la cardinalité entre DEPOT et LOCALISER_DEP = (1,1) donc fusion et l’identifiant de SECTEUR, se retrouve comme clé étrangère dans la table DEPOT.
+-- ------------------------------------------------------------------------
+
+ALTER TABLE STOCKER ADD (
+     CONSTRAINT FK_STOCKER_DEPOT
+          FOREIGN KEY (DEPNUM)
+               REFERENCES DEPOT (DEPNUM))   ;
+
+ALTER TABLE STOCKER ADD (
+     CONSTRAINT FK_STOCKER_PRODUIT
+          FOREIGN KEY (PRODNUM)
+               REFERENCES PRODUIT (PRODNUM))   ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de référence pour la table STOCKER.
+Clés étrangères : 
+DEPNUM et PRODNUM qui sont les identifiants de l’entité DEPOT et PRODUIT que la classe d’association STOCKER relient.
+-- ------------------------------------------------------------------------
+
+
+
+
+ALTER TABLE APPROVISIONNER ADD (
+     CONSTRAINT FK_APPROVISIONNER_PRODUIT
+          FOREIGN KEY (PRODNUM)
+               REFERENCES PRODUIT (PRODNUM))   ;
+
+ALTER TABLE APPROVISIONNER ADD (
+     CONSTRAINT FK_APPROVISIONNER_DEPOT
+          FOREIGN KEY (DEPNUM_SOURCE)
+               REFERENCES DEPOT (DEPNUM_SOURCE))   ;
+
+ALTER TABLE APPROVISIONNER ADD (
+     CONSTRAINT FK_APPROVISIONNER_DEPOT
+          FOREIGN KEY (DEPNUM_DEST)
+               REFERENCES DEPOT (DEPNUM_DEST))   ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de référence pour la table APPROVISIONNER.
+Clés étrangères : 
+DEPNUM_SOURCE, DEPNUM_DEST et PRODNUM qui sont les identifiants de l’entité DEPOT et PRODUIT que la classe d’association APPROVISIONNER relient.
+-- ------------------------------------------------------------------------
+
+ALTER TABLE COMMANDE ADD (
+     CONSTRAINT FK_COMMANDE_CLIENT
+          FOREIGN KEY (CLINUM)
+               REFERENCES CLIENT (CLINUM))   ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de référence pour la table COMMANDE.
+Clé étrangère : 
+
+CLINUM : car la cardinalité entre COMMANDE et EMETTRE = (1,1) donc fusion et l’identifiant de CLINUM, se retrouve comme clé étrangère dans la table COMMANDE.
+-- ------------------------------------------------------------------------
+
+ALTER TABLE CONCERNER ADD (
+     CONSTRAINT FK_CONCERNER _COMMANDE
+          FOREIGN KEY (COMNUM)
+               REFERENCES COMMANDE(COMNUM))   ;
+
+
+ALTER TABLE CONCERNER ADD (
+     CONSTRAINT FK_CONCERNER _PRODUIT
+          FOREIGN KEY (PRODNUM)
+               REFERENCES PRODUIT(PRODNUM))   ;
+
+
+ALTER TABLE CONCERNER ADD (
+     CONSTRAINT FK_CONCERNER _ENTREPOT
+          FOREIGN KEY (ENTNUM)
+               REFERENCES ENTREPOT(ENTNUM))   ;
+-- ------------------------------------------------------------------------
+Commentaire : Création de référence pour la table CONCERNER.
+Clés étrangères : 
+COMNUM, ENTNUM et PRODNUM qui sont les identifiants de l’entité COMMANDE, ENTREPOT et PRODUIT que la classe d’association CONCERNER relient.
+-- ------------------------------------------------------------------------
+
+ALTER TABLE COLIS ADD (
+     CONSTRAINT FK_COLIS _ENTREPOT
+          FOREIGN KEY (ENTNUM)
+               REFERENCES ENTREPOT(ENTNUM))   ;
+
+ALTER TABLE COLIS ADD (
+     CONSTRAINT FK_COLIS _COMMANDE
+          FOREIGN KEY (COMNUM)
+               REFERENCES COMMANDE(COMNUM))   ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de référence pour la table COLIS.
+Clé étrangère : 
+ENTNUM: car la cardinalité entre COLIS et DESTINER = (1,1) donc fusion et l’identifiant de ENTNUM, se retrouve comme clé étrangère dans la table COLIS.
+-- ------------------------------------------------------------------------
+
+ALTER TABLE CONTENIR ADD (
+     CONSTRAINT FK_CONTENIR_COLIS
+          FOREIGN KEY (COLNUM)
+               REFERENCES COLIS(COLNUM))   ;
+
+ALTER TABLE CONTENIR ADD (
+     CONSTRAINT FK_CONTENIR_PRODUIT
+          FOREIGN KEY (PRODNUM)
+               REFERENCES PRODUIT(PRODNUM)) ;   
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de référence pour la table CONTENIR.
+Clés étrangères : 
+COLNUM et PRODNUM qui sont les identifiants de l’entité COLIS et PRODUIT que la classe d’association CONTENIR relient.
+-- ------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+-- ------------------------------------------------------------------------
+--       CREATION DES CONTRAINTES
+-- ------------------------------------------------------------------------
+
+Alter table commande add (constraint comdateliv check (comdateliv > comdate)) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de contrainte dans la table COMMANDE, pour l’attribut COMDATELIV, il faut que la Date de COMDATELIV soit supérieure à la COMDATE.
+-- ------------------------------------------------------------------------
+
+Alter table produit add (constraint qteapprovisionnement check (qteapprovisionnement> 0)) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de contrainte dans la table PRODUIT, pour l’attribut QTEAPPROVISIONNEMENT, il faut que la QTEAPPROVISIONNEMENT soit supérieur à 0.
+-- ------------------------------------------------------------------------
+
+Alter table colis add (constraint coletat check (coletat in ('incomplete', 'en cours', 'prête', 'livrée','annulée'))) ;
+
+-- ------------------------------------------------------------------------
+Commentaire : Création de contrainte dans la table COLIS, pour l’attribut COLETAT, il faut que les valeurs de COLETAT fassent parti de cette liste de valeur ('incomplete', 'en cours', 'prête', 'livrée’, ‘annulée').
+-- ------------------------------------------------------------------------
+Alter table commande add (constraint cometat check (cometat in ('incomplete', 'en cours', 'prête', 'livrée','annulée')));
+-- ------------------------------------------------------------------------
+Commentaire : Création de contrainte dans la table COMMANDE, pour l’attribut COMETAT, il faut que les valeurs de COMETAT fassent parti de cette liste de valeur ('incomplete', 'en cours', 'prête', 'livrée’, ‘annulée').
+-- ------------------------------------------------------------------------
+
+Alter table concerner add (constraint qtecom check (qtecom> 0));
+-- ------------------------------------------------------------------------
+Commentaire : Création de contrainte dans la table CONCERNER, pour l’attribut QTECOM, il faut que la QTECOM soit supérieur à 0.
+-- ------------------------------------------------------------------------
+Alter table colis add (constraint colvolume check (qtecom> 0));
+-- ------------------------------------------------------------------------
+Commentaire : Création de contrainte dans la table COLIS, pour l’attribut COLVOLUME, il faut que le COLVOLUME soit supérieur à 0.
+-- ------------------------------------------------------------------------
+Alter table produit add (constraint prodvolume check (prodvolume> 0)) ;
+-- ------------------------------------------------------------------------
+Commentaire : Création de contrainte dans la table PRODUIT, pour l’attribut PRODVOLUME, il faut que le PRODVOLUME soit supérieur à 0.
+-- ------------------------------------------------------------------------
+Alter table stocker add (constraint qtestock check (qtestock> 0));
+-- ------------------------------------------------------------------------
+Commentaire : Création de contrainte dans la table STOCKER, pour l’attribut QTESTOCK, il faut que le QTESTOCK soit supérieur à 0.
+-- ------------------------------------------------------------------------
+Alter table stocker add (constraint qtealerte check (qtealerte> 0));
+-- ------------------------------------------------------------------------
+Commentaire : Création de contrainte dans la table STOCKER, pour l’attribut QTEALERTE, il faut que le QTEALERTE soit supérieur à 0.
+-- ------------------------------------------------------------------------
+
+Alter table secteur add (constraint secquartier check (secquartier in ('Nord', 'Sud', 'Centre', 'Est','Ouest'))) ;
+
+-- ------------------------------------------------------------------
+Commentaire : Création de contrainte dans la table SECTEUR, pour l’attribut SECQUARTIER, il faut que les valeurs de SECQUARTIER fassent parti de cette liste de valeur ('Nord', 'Sud', 'Centre', 'Est’, ‘Ouest').
+-- ------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
