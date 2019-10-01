@@ -1,0 +1,84 @@
+1)  Pour chaque dépôt la liste de produits en alerte (quantité en stock inferieurs à quantité d'alerte). 
+Trier le résultat sur les produits les plus en alerte. 
+
+Requête SQL :
+
+	Select Depnom, Prodlib, qtestock, qtealerte
+	From   Depot D
+	Inner join   Stocker S on  D.Depnum = S.Depnum
+  Inner join   Produit P on  P.Prodnum = S.Prodnum
+	where Qtestock < Qtealerte
+	Order by qtestock ASC, depnom;
+
+
+Commentaire : on veut que s’affiche par dépôt, les libellés des produits les plus en alerte, 
+on fait s’afficher les qtestock et les qtealerte pour preuve que la quantité en stock est inferieurs 
+à la quantité d'alerte (qui est une restriction) 
+
+
+2)  Nom des secteurs contenant plus de deux entrepôts.
+ 
+Requête SQL:
+
+	Select Count (Entnum), E. Secnum
+	From Entrepot E
+  Inner join Secteur S on	E.Secnum = S.Secnum
+	Group By E. Secnum
+	Having Count (Entnum) > = 2;
+
+Commentaire:
+S’affiche seulement les secteurs contenant plus de deux entrepot, 
+pour cela on a regroupé les secteurs avec un Group By puis avec un Having pour*
+avoir seulement les secteurs avec plus de deux entrepot.
+
+3)  Liste des dépôts homonymes (même nom) d'un entrepôt localisé dans la même ville. 
+
+Requête SQL:
+
+	Select table1.entnom
+	From
+ 	  	(Select secville, entnom
+          	From secteur s, entrepot e 
+          	Where s.secnum= e.secnum)table1,
+
+					(Select depnom, secville
+         				 From secteur s,depot d  
+         				 Where d.secnum = s.secnum )table2
+	Where table1.secville=table2.secville
+	And   table1.entnom=table2.depnom;
+
+
+
+Commentaire : On a créé deux tables, l’une qui affichera la ville du secteur ainsi que le nom de l’entrepôt, 
+et une deuxième table qui affichera la ville du secteur ainsi que le nom du dépôt. 
+Puis comme conditions on veut que la ville du secteur de l’entrepôt (table1) soit égale/ 
+similaire à la ville du secteur du dépôt (table 2). Et que le nom du dépôt soit le même que le nom de l’entrepôt.
+Ci-dessous on voit que le résultat qui s’affiche c’est le nom de l’entrepôt (Canopy) 
+homonyme d’un dépôt localisé dans la même ville Toulouse.
+
+
+5)  Liste des produits stockés dans des dépôts toulousains et non commandés en 2018. 
+
+
+Requêtes SQL:
+
+	Select distinct (prodlib)
+	From  produit p ,stocker s
+	Where  depnum  in (Select depnum
+                     From depot d, secteur s
+                     Where Lower(secville)='toulouse'
+                     And d.secnum=s.secnum)
+
+	And  p.prodnum not in (Select p.prodnum 
+                       From produit p,concerner con,commande com
+                       Where to_char(comdate,'yyyy’) ='2018'
+                       And com.comnum=con.comnum
+                       And p.prodnum=con.prodnum)
+	and p.prodnum=s.prodnum
+
+Commentaire: 
+
+Sous requête pour avoir les DEPNUM localisé à Toulouse
+Et une autre sous requête pour avoir les prodnum non commande en 2018.
+Ci-dessous on voit que le résultat qui s’affiche c’est les libellés des
+produits stockés dans des dépôts toulousains et non commandés en 2018.
